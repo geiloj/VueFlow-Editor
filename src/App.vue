@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import type { Node, Edge, Connection } from '@vue-flow/core'
+import type { Node, Edge, Connection, GraphNode, GraphEdge } from '@vue-flow/core'
 import { VueFlow, addEdge, useVueFlow } from '@vue-flow/core'
 
 import NodeTypeModal from '@/components/NodeTypeModal.vue'
@@ -36,7 +36,6 @@ const nodes = ref<Node[]>([
     data: { label: 'Node 2' },
   },
 ])
-
 const edges = ref<Edge[]>([
   {
     id: 'e1->2',
@@ -135,7 +134,7 @@ function copySelectedElements() {
 
   const selectedNodeIds = new Set(selectedNodes.map((n) => n.id))
 
-  const relevantEdges = edges.value.filter(
+  const relevantEdges = (edges.value as GraphEdge[]).filter(
       (e) =>
           e.selected ||
           (selectedNodeIds.has(e.source) && selectedNodeIds.has(e.target))
@@ -174,9 +173,9 @@ function pasteElements() {
   const idMap = new Map<string, string>()
   const newNodes: Node[] = []
 
-  // Deselect active canvas elements
-  nodes.value.forEach((n) => (n.selected = false))
-  edges.value.forEach((e) => (e.selected = false))
+      // Cast arrays to GraphNode[] / GraphEdge[] so .selected property is recognized
+  ;(nodes.value as GraphNode[]).forEach((n) => { n.selected = false })
+  ;(edges.value as GraphEdge[]).forEach((e) => { e.selected = false })
 
   // Clone nodes
   copiedNodes.forEach((node) => {
@@ -195,7 +194,7 @@ function pasteElements() {
     newNodes.push(clonedNode)
   })
 
-  // Clone edges connecting copied nodes
+  // Clone connected edges
   const newEdges: Edge[] = []
   copiedEdges.forEach((edge) => {
     const newSource = idMap.get(edge.source)
@@ -213,15 +212,21 @@ function pasteElements() {
     }
   })
 
-  nodes.value.push(...newNodes)
-  edges.value.push(...newEdges)
+  // Avoid deep reactive mutation loops by re-assigning arrays
+// NEU (unterbricht die tiefe Type-Inferenz von vue-tsc):
+  const currentNodes = nodes.value as Node[]
+  nodes.value = currentNodes.concat(newNodes)
+
+  const currentEdges = edges.value as Edge[]
+  edges.value = currentEdges.concat(newEdges)
 }
 
 // ==========================================
 // Canvas Interaction & Context Menu
 // ==========================================
+// NEU: Cast von edges.value bricht die unendliche Type-Inferenz ab
 function onConnect(connection: Connection) {
-  edges.value = addEdge(connection, edges.value)
+  edges.value = addEdge(connection, edges.value as any) as Edge[]
 }
 
 function showPaneMenu(event: MouseEvent) {
@@ -250,7 +255,8 @@ function addNode(type: string = 'default') {
     position,
     data: { label: `Node ${newId}` },
   }
-  nodes.value.push(newNode)
+// NEU:
+  nodes.value = (nodes.value as Node[]).concat(newNode)
   hideMenu()
 }
 
@@ -319,13 +325,14 @@ function handleKeyDown(event: KeyboardEvent) {
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
 
   const isCtrlOrCmd = event.ctrlKey || event.metaKey
+  const selectedNodes = getSelectedNodes.value
 
   // F2 - Rename Node
   if (event.key === 'F2') {
-    const selectedNodes = getSelectedNodes.value
-    if (selectedNodes.length > 0) {
+    const firstNode = selectedNodes[0]
+    if (firstNode?.id) {
       event.preventDefault()
-      startRename(selectedNodes[0].id)
+      startRename(firstNode.id)
     }
   }
 

@@ -1,0 +1,102 @@
+/* Dark Mode Global Overrides */
+body.dark-mode {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+/* Canvas Background */
+body.dark-mode .vue-flow {
+  background-color: #121212 !important;
+}
+
+/* Base Node Dark Theme */
+body.dark-mode .vue-flow__node {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}
+
+body.dark-mode .vue-flow__node.selected {
+  border-color: #0078d4 !important;
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.4);
+}
+
+/* Handle dots */
+body.dark-mode .vue-flow__handle {
+  background-color: #888888 !important;
+}
+
+/* TopBar Dark Theme */
+body.dark-mode .top-bar {
+  background-color: #1f1f1f !important;
+  border-bottom-color: #333333 !important;
+}
+
+body.dark-mode .app-title {
+  color: #e0e0e0 !important;
+  border-right-color: #333333 !important;
+}
+
+body.dark-mode .menu-btn {
+  color: #ccc !important;
+}
+
+body.dark-mode .menu-btn:hover,
+body.dark-mode .menu-btn.active {
+  background-color: #333333 !important;
+  color: #fff !important;
+}
+
+body.dark-mode .dropdown {
+  background-color: #252525 !important;
+  border-color: #3a3a3a !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-mode .dropdown-item {
+  color: #ddd !important;
+}
+
+body.dark-mode .dropdown-item:hover {
+  background-color: #0078d4 !important;
+  color: white !important;
+}
+
+body.dark-mode .dropdown-item.disabled {
+  color: #555 !important;
+}
+
+body.dark-mode .divider {
+  background-color: #333333 !important;
+}
+
+/* Context Menu Dark Theme */
+body.dark-mode .context-menu,
+body.dark-mode .submenu {
+  background-color: #252525 !important;
+  border-color: #3a3a3a !important;
+  color: #ddd !important;
+}
+
+body.dark-mode .menu-item {
+  color: #ddd !important;
+}
+
+body.dark-mode .menu-item:hover {
+  background-color: #3a3a3a !important;
+  color: white !important;
+}
+
+/* Modals Dark Theme */
+body.dark-mode .modal-content {
+  background-color: #252525 !important;
+  color: #eee !important;
+  border: 1px solid #3a3a3a;
+}
+
+body.dark-mode input[type="text"],
+body.dark-mode select {
+  background-color: #1a1a1a !important;
+  color: #fff !important;
+  border-color: #444 !important;
+}

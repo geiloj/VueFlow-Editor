@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ] # Oder 'master', je nachdem wie dein Haupt-Branch heißt
+    branches: [ master ] # Oder 'master', je nachdem wie dein Haupt-Branch heißt
 
 # Berechtigungen für das Ausführen und Deployen setzen
 permissions:

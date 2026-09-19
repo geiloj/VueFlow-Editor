@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 
 defineProps<{
   x: number
@@ -51,8 +50,6 @@ const nodeTypes = [
       <div class="menu-item" @click="emit('change-type')">Change Type</div>
       <div class="menu-item danger" @click="emit('delete-node')">Delete Node</div>
     </template>
-
-    <div class="menu-item">2nd thing</div>
   </div>
 </template>
 

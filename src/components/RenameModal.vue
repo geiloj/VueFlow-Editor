@@ -65,11 +65,11 @@ function submit() {
   border-radius: 8px;
   min-width: 300px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Dark mode styling */
-:deep(.dark) .modal-card,
-.dark .modal-card {
+:global(.page-wrapper.dark) .modal-card {
   background: #1e293b;
   color: #f8fafc;
   border: 1px solid #334155;
@@ -85,12 +85,17 @@ function submit() {
   outline: none;
   background: #ffffff;
   color: #0f172a;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.dark .rename-input {
+:global(.page-wrapper.dark) .rename-input {
   background: #0f172a;
   color: #f8fafc;
   border-color: #475569;
+}
+
+.rename-input:focus {
+  border-color: #3b82f6;
 }
 
 .modal-actions {
@@ -106,6 +111,11 @@ function submit() {
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
 }
 
 .btn-secondary {
@@ -114,9 +124,18 @@ function submit() {
   border: none;
   padding: 8px 16px;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.dark .btn-secondary {
+:global(.page-wrapper.dark) .btn-secondary {
   color: #94a3b8;
+}
+
+.btn-secondary:hover {
+  color: #334155;
+}
+
+:global(.page-wrapper.dark) .btn-secondary:hover {
+  color: #cbd5e1;
 }
 </style>

@@ -48,10 +48,6 @@ const { project, removeNodes, getSelectedNodes, findNode, fitView } = useVueFlow
 const nodes = ref(treeStore.nodes)
 const edges = ref(treeStore.edges)
 
-// Keep reactive sync
-watch(nodes, (val) => { treeStore.nodes = val }, { deep: true })
-watch(edges, (val) => { treeStore.edges = val }, { deep: true })
-
 // Clipboard & UI State
 const clipboard = ref<{ nodes: Node[]; edges: Edge[] }>({ nodes: [], edges: [] })
 const pasteCount = ref(0)
@@ -60,6 +56,19 @@ const showContextMenu = ref(false)
 const selectedNodeId = ref<string | null>(null)
 const selectedNodeType = ref<string | undefined>(undefined)
 const isDarkMode = ref(false)
+
+// Keep reactive sync
+watch(nodes, (val) => { treeStore.nodes = val }, { deep: true })
+watch(edges, (val) => { treeStore.edges = val }, { deep: true })
+
+// Update all nodes with dark mode state
+watch(isDarkMode, (val) => {
+  nodes.value.forEach(node => {
+    if (node.data) {
+      node.data.isDarkMode = val
+    }
+  })
+})
 
 const isRenaming = ref(false)
 const renameText = ref('')
@@ -200,9 +209,11 @@ function copySelected() {
   if (!selected.length) return
 
   const selectedIds = new Set(selected.map((n) => n.id))
+  const filteredEdges = (edges.value as Edge[]).filter(e => selectedIds.has(e.source) && selectedIds.has(e.target))
+
   clipboard.value = {
     nodes: JSON.parse(JSON.stringify(selected)),
-    edges: JSON.parse(JSON.stringify(edges.value.filter((e) => selectedIds.has(e.source) && selectedIds.has(e.target))))
+    edges: JSON.parse(JSON.stringify(filteredEdges)) as Edge[]
   }
   pasteCount.value = 0
 }
@@ -222,8 +233,8 @@ function pasteClipboard() {
   const idMap = new Map<string, string>()
   const newNodes: Node[] = []
 
-  nodes.value.forEach((n) => (n.selected = false))
-  edges.value.forEach((e) => (e.selected = false))
+  nodes.value.forEach((n) => ((n as any).selected = false))
+  edges.value.forEach((e) => ((e as any).selected = false))
 
   clipboard.value.nodes.forEach((node) => {
     const newId = `${node.type || 'node'}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
@@ -237,23 +248,27 @@ function pasteClipboard() {
     })
   })
 
-  const newEdges: Edge[] = clipboard.value.edges
-      .map((edge) => {
-        const newSource = idMap.get(edge.source)
-        const newTarget = idMap.get(edge.target)
-        if (!newSource || !newTarget) return null
-        return {
-          ...JSON.parse(JSON.stringify(edge)),
-          id: `e_${newSource}-${newTarget}_${Date.now()}`,
-          source: newSource,
-          target: newTarget,
-          selected: true,
-        }
-      })
-      .filter((e): e is Edge => e !== null)
+  const edgesArray = clipboard.value.edges as Edge[]
+  const mapped = edgesArray.map((edge) => {
+    const newSource = idMap.get(edge.source)
+    const newTarget = idMap.get(edge.target)
+    if (!newSource || !newTarget) return null
+    return {
+      ...JSON.parse(JSON.stringify(edge)),
+      id: `e_${newSource}-${newTarget}_${Date.now()}`,
+      source: newSource,
+      target: newTarget,
+      selected: true,
+    }
+  })
+  const newEdges = mapped.filter((e): e is Edge => e !== null)
 
-  nodes.value = [...nodes.value, ...newNodes]
-  edges.value = [...edges.value, ...newEdges]
+  const nodesArray = nodes.value as Node[]
+  const edgesArray2 = edges.value as Edge[]
+  nodesArray.push(...newNodes)
+  edgesArray2.push(...newEdges)
+  ;(nodes as any).value = nodesArray
+  ;(edges as any).value = edgesArray2
 }
 
 function resetView() {
@@ -331,7 +346,8 @@ function onConnect(connection: Connection) {
     const exists = edges.value.some((e) => e.source === connection.source && e.target === connection.target)
     if (exists) return
 
-    edges.value = addEdge({ ...connection, type: 'smoothstep' }, edges.value as any) as Edge[]
+    const newEdges = addEdge({ ...connection, type: 'smoothstep' }, edges.value as any) as Edge[]
+    ;(edges as any).value = newEdges
     return
   }
 
@@ -361,7 +377,7 @@ function onConnect(connection: Connection) {
       id: marriageId,
       type: 'marriage',
       position: { x: midX, y: midY },
-      data: { active: true },
+      data: { active: true, isDarkMode: isDarkMode.value },
     }
 
     const sourceIsLeft = sourceNode.position.x < targetNode.position.x
@@ -384,12 +400,12 @@ function onConnect(connection: Connection) {
       type: 'smoothstep',
     }
 
-    nodes.value = [...nodes.value, newMarriageNode]
-    edges.value = [...edges.value, edgeA, edgeB]
+    ;(nodes as any).value = [...(nodes.value as Node[]), newMarriageNode]
+    ;(edges as any).value = [...(edges.value as Edge[]), edgeA, edgeB]
     return
   }
 
-  edges.value = addEdge({ ...connection, type: 'smoothstep' }, edges.value as any) as Edge[]
+  ;(edges as any).value = addEdge({ ...connection, type: 'smoothstep' }, edges.value as any) as Edge[]
 }
 
 // ==========================================
@@ -412,7 +428,7 @@ function showNodeContextMenu(event: NodeMouseEvent) {
   selectedNodeId.value = event.node.id
   selectedNodeType.value = event.node.type
 
-  nodes.value.forEach((n) => (n.selected = n.id === event.node.id))
+  nodes.value.forEach((n) => ((n as any).selected = n.id === event.node.id))
   showContextMenu.value = true
 }
 
@@ -434,14 +450,24 @@ function addNode(type: string = 'person') {
     id: newId,
     type: type,
     position,
-    data: { firstName: `Person ${newId}`, isAlive: true },
+    data: { firstName: `Person ${newId}`, isAlive: true, isDarkMode: isDarkMode.value },
   }
-  nodes.value = [...nodes.value, newNode]
+  ;(nodes as any).value = [...(nodes.value as Node[]), newNode]
   hideMenu()
 }
 
 function deleteNode() {
   if (selectedNodeId.value) removeNodes([selectedNodeId.value])
+  hideMenu()
+}
+
+function toggleMarriage() {
+  if (!selectedNodeId.value) return
+  const node = findNode(selectedNodeId.value)
+  if (node && node.type === 'marriage') {
+    node.data = node.data || {}
+    node.data.active = !node.data.active
+  }
   hideMenu()
 }
 
@@ -512,9 +538,11 @@ function openPersonDetails() {
         :y="mousepos.y"
         :selected-node-id="selectedNodeId"
         :selected-node-type="selectedNodeType"
+        :is-dark-mode="isDarkMode"
         @add-node="(type) => addNode(type || 'person')"
         @rename-node="startRename()"
         @edit-details="openPersonDetails"
+        @toggle-marriage="toggleMarriage"
         @delete-node="deleteNode"
     />
 

@@ -3,6 +3,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 
 defineProps<{
   isDarkMode?: boolean
+  hideEditMenu?: boolean
+  hideClearOption?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -109,7 +111,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="top-bar" @click.stop>
+  <div class="top-bar" :class="{ dark: isDarkMode }" @click.stop>
     <div class="left-section">
       <!-- App Title -->
       <div class="app-title">
@@ -150,14 +152,14 @@ onUnmounted(() => {
               <span class="shortcut">Ctrl+E</span>
             </div>
             <div class="divider"></div>
-            <div class="dropdown-item danger" @click="handleClear">
+            <div v-if="!hideClearOption" class="dropdown-item danger" @click="handleClear">
               <span>Clear Canvas</span>
             </div>
           </div>
         </div>
 
         <!-- Edit Menu -->
-        <div class="menu-group">
+        <div v-if="!hideEditMenu" class="menu-group">
           <button
               class="menu-btn"
               :class="{ active: activeMenu === 'edit' }"
@@ -262,6 +264,12 @@ onUnmounted(() => {
   font-size: 13px;
   user-select: none;
   box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.top-bar.dark {
+  background-color: #1f1f1f;
+  border-bottom-color: #333333;
 }
 
 .left-section,
@@ -277,6 +285,11 @@ onUnmounted(() => {
   margin-right: 16px;
   padding-right: 12px;
   border-right: 1px solid #dcdcdc;
+}
+
+.top-bar.dark .app-title {
+  color: #e0e0e0;
+  border-right-color: #333333;
 }
 
 .menu-items {
@@ -295,11 +308,22 @@ onUnmounted(() => {
   color: #333;
   border-radius: 3px;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .menu-btn:hover,
 .menu-btn.active {
   background-color: #e2e2e2;
+}
+
+.top-bar.dark .menu-btn {
+  color: #ccc;
+}
+
+.top-bar.dark .menu-btn:hover,
+.top-bar.dark .menu-btn.active {
+  background-color: #333333;
+  color: #fff;
 }
 
 /* --- Professional SVG Switch Toggle --- */
@@ -384,6 +408,13 @@ onUnmounted(() => {
   min-width: 180px;
   z-index: 2000;
   padding: 4px 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.top-bar.dark .dropdown {
+  background-color: #252525;
+  border-color: #3a3a3a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .dropdown-item {
@@ -393,6 +424,7 @@ onUnmounted(() => {
   padding: 6px 14px;
   cursor: pointer;
   color: #222;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .dropdown-item:hover {
@@ -405,6 +437,10 @@ onUnmounted(() => {
   color: white;
 }
 
+.top-bar.dark .dropdown-item {
+  color: #ddd;
+}
+
 .shortcut {
   font-size: 11px;
   opacity: 0.7;
@@ -414,46 +450,10 @@ onUnmounted(() => {
 .divider {
   height: 1px;
   background-color: #e5e5e5;
-  margin: 4px 0;
+  transition: background-color 0.2s ease;
 }
 
-/* Dark Mode Overrides for TopBar Components */
-:global(body.dark-mode) .top-bar {
-  background-color: #1f1f1f;
-  border-bottom-color: #333333;
-}
-
-:global(body.dark-mode) .app-title {
-  color: #e0e0e0;
-  border-right-color: #333333;
-}
-
-:global(body.dark-mode) .menu-btn {
-  color: #ccc;
-}
-
-:global(body.dark-mode) .menu-btn:hover,
-:global(body.dark-mode) .menu-btn.active {
-  background-color: #333333;
-  color: #fff;
-}
-
-:global(body.dark-mode) .dropdown {
-  background-color: #252525;
-  border-color: #3a3a3a;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-:global(body.dark-mode) .dropdown-item {
-  color: #ddd;
-}
-
-:global(body.dark-mode) .dropdown-item:hover {
-  background-color: #0078d4;
-  color: white;
-}
-
-:global(body.dark-mode) .divider {
+.top-bar.dark .divider {
   background-color: #333333;
 }
 </style>

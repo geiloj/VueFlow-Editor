@@ -4,12 +4,13 @@ import { Handle, Position } from '@vue-flow/core'
 const props = defineProps<{
   data?: {
     active?: boolean
+    isDarkMode?: boolean
   }
 }>()
 </script>
 
 <template>
-  <div class="marriage-node-wrapper" :class="{ inactive: props.data?.active === false }">
+  <div class="marriage-node-wrapper" :class="{ inactive: props.data?.active === false, dark: data?.isDarkMode }">
     <div class="diamond-shape">
       <!-- ER-Diagramm Symbol für Beziehung/Marriage -->
       <svg
@@ -40,6 +41,7 @@ const props = defineProps<{
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .diamond-shape {
@@ -55,9 +57,10 @@ const props = defineProps<{
   transition: all 0.2s ease;
 }
 
-.dark .diamond-shape {
-  background: #1e293b;
+.marriage-node-wrapper.dark .diamond-shape {
+  background: #3a3a3a;
   border-color: #f472b6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .diamond-icon {
@@ -68,7 +71,7 @@ const props = defineProps<{
   transition: color 0.2s ease;
 }
 
-.dark .diamond-icon {
+.marriage-node-wrapper.dark .diamond-icon {
   color: #f472b6;
 }
 
@@ -79,7 +82,7 @@ const props = defineProps<{
   border-radius: 50%;
 }
 
-.dark .vue-flow__handle {
+.marriage-node-wrapper.dark .vue-flow__handle {
   background: #f472b6;
 }
 
@@ -89,16 +92,16 @@ const props = defineProps<{
   background: #f1f5f9;
 }
 
-.dark .marriage-node-wrapper.inactive .diamond-shape {
+.marriage-node-wrapper.inactive.dark .diamond-shape {
   border-color: #64748b;
-  background: #334155;
+  background: #2a2a2a;
 }
 
 .marriage-node-wrapper.inactive .diamond-icon {
   color: #94a3b8;
 }
 
-.dark .marriage-node-wrapper.inactive .diamond-icon {
+.marriage-node-wrapper.inactive.dark .diamond-icon {
   color: #64748b;
 }
 
@@ -106,7 +109,7 @@ const props = defineProps<{
   background: #94a3b8;
 }
 
-.dark .marriage-node-wrapper.inactive .vue-flow__handle {
+.marriage-node-wrapper.inactive.dark .vue-flow__handle {
   background: #64748b;
 }
 </style>

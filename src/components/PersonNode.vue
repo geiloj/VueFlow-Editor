@@ -13,8 +13,8 @@ const props = defineProps<{
     isAlive?: boolean
     photoUrl?: string
     photoFileName?: string
-    // Falls das Bild als Blob oder File-Objekt im Node gespeichert ist
     photoBlob?: Blob | File
+    isDarkMode?: boolean
   }
 }>()
 
@@ -22,7 +22,7 @@ const router = useRouter()
 
 function extractYear(dateStr?: string): string {
   if (!dateStr) return ''
-  return dateStr.split('-')[0]
+  return dateStr.split('-')[0] ?? ''
 }
 
 // Ermittelt die korrekte Bild-Quelle
@@ -64,7 +64,7 @@ function openDetail() {
 </script>
 
 <template>
-  <div class="person-node" @dblclick="openDetail">
+  <div class="person-node" :class="{ dark: data.isDarkMode }" @dblclick="openDetail">
     <Handle id="top" type="target" :position="Position.Top" />
     <Handle id="left" type="source" :position="Position.Left" />
     <Handle id="left-target" type="target" :position="Position.Left" />
@@ -104,6 +104,15 @@ function openDetail() {
   min-width: 140px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  color: #0f172a;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.person-node.dark {
+  background: #3a3a3a;
+  border-color: #5a9fd4;
+  color: #f0f0f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 }
 
 .node-card {
@@ -121,6 +130,10 @@ function openDetail() {
   border: 1px solid #cbd5e1;
 }
 
+.person-node.dark .photo-wrapper {
+  border-color: #555555;
+}
+
 .node-photo {
   width: 100%;
   height: 100%;
@@ -133,6 +146,11 @@ function openDetail() {
   gap: 4px;
   font-weight: 600;
   font-size: 13px;
+  color: #0f172a;
+}
+
+.person-node.dark .name-line {
+  color: #f0f0f0;
 }
 
 .death-cross {
@@ -144,5 +162,9 @@ function openDetail() {
   font-size: 11px;
   color: #64748b;
   text-align: center;
+}
+
+.person-node.dark .lifespan {
+  color: #9ca3af;
 }
 </style>

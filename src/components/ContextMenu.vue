@@ -1,54 +1,35 @@
+<!-- src/components/ContextMenu.vue -->
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   x: number
   y: number
   selectedNodeId: string | null
+  selectedNodeType?: string
 }>()
 
 const emit = defineEmits<{
-  'add-node': [type: string]
-  'rename-node': []
-  'change-type': []
-  'delete-node': []
+  (e: 'add-node', type?: string): void
+  (e: 'rename-node'): void
+  (e: 'delete-node'): void
+  (e: 'edit-details'): void // <-- New Event
 }>()
 
-const nodeTypes = [
-  { id: 'input', label: 'Input Node' },
-  { id: 'default', label: 'Default Node' },
-  { id: 'output', label: 'Output Node' },
-]
 </script>
 
 <template>
-  <div
-      class="context-menu"
-      :style="{ top: `${y}px`, left: `${x}px` }"
-      @click.stop
-      @contextmenu.prevent
-  >
-    <!-- Add Node with Submenu -->
-    <div class="menu-item has-submenu">
-      <span>Add Node</span>
-      <span class="arrow">▶</span>
-
-      <!-- Submenu for Node Types -->
-      <div class="submenu">
-        <div
-            v-for="type in nodeTypes"
-            :key="type.id"
-            class="menu-item"
-            @click="emit('add-node', type.id)"
-        >
-          {{ type.label }}
-        </div>
-      </div>
-    </div>
-
-    <!-- Node-Specific Actions -->
+  <div class="context-menu" :style="{ top: `${y}px`, left: `${x}px` }" @click.stop>
+    <!-- Node Specific Actions -->
     <template v-if="selectedNodeId">
-      <div class="menu-item" @click="emit('rename-node')">Rename Node (F2)</div>
-      <div class="menu-item" @click="emit('change-type')">Change Type</div>
-      <div class="menu-item danger" @click="emit('delete-node')">Delete Node</div>
+      <div v-if="selectedNodeType === 'person'" class="menu-item" @click="emit('edit-details')">
+        Edit Person Details
+      </div>
+      <div class="menu-item" @click="emit('rename-node')">Rename</div>
+      <div class="menu-item danger" @click="emit('delete-node')">Delete</div>
+    </template>
+
+    <!-- Pane Actions -->
+    <template v-else>
+      <div class="menu-item" @click="emit('add-node', 'person')">Add Person</div>
     </template>
   </div>
 </template>
@@ -57,60 +38,26 @@ const nodeTypes = [
 .context-menu {
   position: fixed;
   z-index: 1000;
-  background: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 4px 0;
+  min-width: 160px;
 }
-
 .menu-item {
-  position: relative;
-  margin: 0;
-  padding: 8px 16px;
-  border: none;
-  background: none;
+  padding: 8px 12px;
+  font-size: 13px;
   cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  white-space: nowrap;
-  color: #333;
+  color: #334155;
 }
-
 .menu-item:hover {
-  background-color: #4a4a4a;
-  color: white;
+  background-color: #f1f5f9;
 }
-
-.menu-item:hover .arrow {
-  color: white;
+.menu-item.danger {
+  color: #ef4444;
 }
-
 .menu-item.danger:hover {
-  background-color: #ff4d4f;
-  color: white;
-}
-
-.arrow {
-  font-size: 10px;
-  color: #666;
-}
-
-.has-submenu .submenu {
-  display: none;
-  position: absolute;
-  top: -4px;
-  left: 100%;
-  background: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  padding: 4px 0;
-}
-
-.has-submenu:hover > .submenu {
-  display: block;
+  background-color: #fef2f2;
 }
 </style>

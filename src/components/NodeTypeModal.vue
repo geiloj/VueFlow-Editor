@@ -1,114 +1,109 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-
-const props = defineProps<{
-  currentType?: string
+defineProps<{
+  currentType: string
 }>()
 
 const emit = defineEmits<{
-  (e: 'select', type: string): void
+  (e: 'select', newType: string): void
   (e: 'cancel'): void
 }>()
 
-const selectedType = ref(props.currentType || 'default')
-
 const availableTypes = [
-  { id: 'input', label: 'Input Node (Source only)' },
-  { id: 'default', label: 'Default Node (Input & Output)' },
-  { id: 'output', label: 'Output Node (Target only)' },
+  { id: 'person', label: 'Person' },
+  { id: 'marriage', label: 'Marriage (Diamond)' },
 ]
 </script>
 
 <template>
-  <div class="modal-overlay" @click.stop="emit('cancel')">
-    <div class="modal" @click.stop>
+  <div class="modal-backdrop" @click="emit('cancel')">
+    <div class="modal-card" @click.stop>
       <h3>Change Node Type</h3>
-      <div class="type-options">
-        <label
+      <div class="type-list">
+        <button
             v-for="type in availableTypes"
             :key="type.id"
-            class="type-option"
-            :class="{ active: selectedType === type.id }"
+            class="type-btn"
+            :class="{ active: currentType === type.id }"
+            @click="emit('select', type.id)"
         >
-          <input
-              v-model="selectedType"
-              type="radio"
-              name="nodeType"
-              :value="type.id"
-          />
-          <span>{{ type.label }}</span>
-        </label>
+          {{ type.label }}
+        </button>
       </div>
       <div class="modal-actions">
-        <button @click="emit('select', selectedType)">Apply</button>
-        <button @click="emit('cancel')">Cancel</button>
+        <button class="btn-cancel" @click="emit('cancel')">Cancel</button>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.modal-overlay {
+.modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  z-index: 2000;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  z-index: 2000;
 }
 
-.modal {
+.modal-card {
   background: white;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  width: 320px;
+  min-width: 280px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-.modal h3 {
-  margin-top: 0;
-  margin-bottom: 16px;
+.dark .modal-card {
+  background: #1e293b;
+  color: white;
 }
 
-.type-options {
+.type-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin: 16px 0;
 }
 
-.type-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.type-btn {
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s;
+  text-align: left;
+  font-weight: 500;
 }
 
-.type-option:hover {
-  background: #f5f5f5;
+.dark .type-btn {
+  background: #334155;
+  border-color: #475569;
+  color: white;
 }
 
-.type-option.active {
-  border-color: #007bff;
-  background: #eef6ff;
+.type-btn.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.dark .type-btn.active {
+  background: #1e3a8a;
+  color: #93c5fd;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
 }
 
-.modal-actions button {
+.btn-cancel {
   padding: 6px 12px;
+  border: none;
+  background: transparent;
   cursor: pointer;
+  color: #64748b;
 }
 </style>

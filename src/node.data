@@ -1,0 +1,11 @@
+export interface PersonData {
+  firstName: string
+  lastName: string
+  country?: string
+  birthDate?: string // Format: "YYYY", "YYYY-MM" oder "YYYY-MM-DD"
+  isAlive: boolean
+  deathDate?: string
+  description?: string
+  photoUrl?: string  // Base64 oder temporärer Objekt-Pfad
+  photoFileName?: string // Für den ZIP-Export
+}

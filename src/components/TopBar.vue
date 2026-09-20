@@ -6,7 +6,9 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'export-json'): void
+  (e: 'save-local'): void
+  (e: 'export-zip'): void
+  (e: 'import-file', file: File): void
   (e: 'import-json', data: string): void
   (e: 'clear-graph'): void
   (e: 'reset-zoom'): void
@@ -37,19 +39,31 @@ function handleFileUpload(event: Event) {
   const file = target.files?.[0]
   if (!file) return
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const content = e.target?.result as string
-    if (content) {
-      emit('import-json', content)
+  // Check if file is a ZIP archive
+  if (file.name.endsWith('.zip')) {
+    emit('import-file', file)
+  } else {
+    // Standard JSON text reading
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const content = e.target?.result as string
+      if (content) {
+        emit('import-json', content)
+      }
     }
-    target.value = ''
+    reader.readAsText(file)
   }
-  reader.readAsText(file)
+
+  target.value = ''
 }
 
-function handleExport() {
-  emit('export-json')
+function handleSaveLocal() {
+  emit('save-local')
+  closeMenus()
+}
+
+function handleExportZip() {
+  emit('export-zip')
   closeMenus()
 }
 
@@ -106,7 +120,7 @@ onUnmounted(() => {
       <input
           ref="fileInputRef"
           type="file"
-          accept=".json"
+          accept=".zip,.json"
           style="display: none"
           @change="handleFileUpload"
       />
@@ -123,13 +137,17 @@ onUnmounted(() => {
             File
           </button>
           <div v-if="activeMenu === 'file'" class="dropdown">
+            <div class="dropdown-item" @click="handleSaveLocal">
+              <span>Save Local State</span>
+              <span class="shortcut">Ctrl+S</span>
+            </div>
             <div class="dropdown-item" @click="triggerFileInput">
-              <span>Import JSON...</span>
+              <span>Import ZIP...</span>
               <span class="shortcut">Ctrl+O</span>
             </div>
-            <div class="dropdown-item" @click="handleExport">
-              <span>Export JSON...</span>
-              <span class="shortcut">Ctrl+S</span>
+            <div class="dropdown-item" @click="handleExportZip">
+              <span>Export ZIP...</span>
+              <span class="shortcut">Ctrl+E</span>
             </div>
             <div class="divider"></div>
             <div class="dropdown-item danger" @click="handleClear">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import type { Node, Edge, Connection, GraphNode, GraphEdge } from '@vue-flow/core'
+import type { Node, Edge, Connection, GraphNode, GraphEdge, NodeMouseEvent } from '@vue-flow/core'
 import { VueFlow, addEdge, useVueFlow } from '@vue-flow/core'
 
 import NodeTypeModal from '@/components/NodeTypeModal.vue'
@@ -173,11 +173,9 @@ function pasteElements() {
   const idMap = new Map<string, string>()
   const newNodes: Node[] = []
 
-      // Cast arrays to GraphNode[] / GraphEdge[] so .selected property is recognized
   ;(nodes.value as GraphNode[]).forEach((n) => { n.selected = false })
   ;(edges.value as GraphEdge[]).forEach((e) => { e.selected = false })
 
-  // Clone nodes
   copiedNodes.forEach((node) => {
     const newId = `node_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
     idMap.set(node.id, newId)
@@ -194,7 +192,6 @@ function pasteElements() {
     newNodes.push(clonedNode)
   })
 
-  // Clone connected edges
   const newEdges: Edge[] = []
   copiedEdges.forEach((edge) => {
     const newSource = idMap.get(edge.source)
@@ -212,8 +209,6 @@ function pasteElements() {
     }
   })
 
-  // Avoid deep reactive mutation loops by re-assigning arrays
-// NEU (unterbricht die tiefe Type-Inferenz von vue-tsc):
   const currentNodes = nodes.value as Node[]
   nodes.value = currentNodes.concat(newNodes)
 
@@ -224,20 +219,34 @@ function pasteElements() {
 // ==========================================
 // Canvas Interaction & Context Menu
 // ==========================================
-// NEU: Cast von edges.value bricht die unendliche Type-Inferenz ab
 function onConnect(connection: Connection) {
   edges.value = addEdge(connection, edges.value as any) as Edge[]
 }
 
-function showPaneMenu(event: MouseEvent) {
+// Right-click on Canvas Pane
+function showPaneContextMenu(event: MouseEvent) {
+  event.preventDefault()
+
   mousepos.value = { x: event.clientX, y: event.clientY }
   selectedNodeId.value = null
   showContextMenu.value = true
 }
 
-function showNodeMenu(event: MouseEvent, nodeId: string) {
-  mousepos.value = { x: event.clientX, y: event.clientY }
-  selectedNodeId.value = nodeId
+// Right-click on Specific Node
+function showNodeContextMenu(event: NodeMouseEvent) {
+  const mouseEvent = event.event as MouseEvent
+
+  mouseEvent.preventDefault()
+  mouseEvent.stopPropagation()
+
+  mousepos.value = { x: mouseEvent.clientX, y: mouseEvent.clientY }
+  selectedNodeId.value = event.node.id
+
+  // Mark node as selected in VueFlow state
+  ;(nodes.value as GraphNode[]).forEach((n) => {
+    n.selected = n.id === event.node.id
+  })
+
   showContextMenu.value = true
 }
 
@@ -255,7 +264,6 @@ function addNode(type: string = 'default') {
     position,
     data: { label: `Node ${newId}` },
   }
-// NEU:
   nodes.value = (nodes.value as Node[]).concat(newNode)
   hideMenu()
 }
@@ -327,7 +335,6 @@ function handleKeyDown(event: KeyboardEvent) {
   const isCtrlOrCmd = event.ctrlKey || event.metaKey
   const selectedNodes = getSelectedNodes.value
 
-  // F2 - Rename Node
   if (event.key === 'F2') {
     const firstNode = selectedNodes[0]
     if (firstNode?.id) {
@@ -336,37 +343,31 @@ function handleKeyDown(event: KeyboardEvent) {
     }
   }
 
-  // Ctrl + S - Export JSON
   if (isCtrlOrCmd && event.key.toLowerCase() === 's') {
     event.preventDefault()
     exportJSON()
   }
 
-  // Ctrl + O - Import JSON
   if (isCtrlOrCmd && event.key.toLowerCase() === 'o') {
     event.preventDefault()
     triggerImportModal()
   }
 
-  // Ctrl + 0 - Reset Zoom
   if (isCtrlOrCmd && event.key === '0') {
     event.preventDefault()
     resetZoom()
   }
 
-  // Ctrl + C - Copy selection
   if (isCtrlOrCmd && event.key.toLowerCase() === 'c') {
     event.preventDefault()
     copySelectedElements()
   }
 
-  // Ctrl + X - Cut selection
   if (isCtrlOrCmd && event.key.toLowerCase() === 'x') {
     event.preventDefault()
     cutSelectedElements()
   }
 
-  // Ctrl + V - Paste selection
   if (isCtrlOrCmd && event.key.toLowerCase() === 'v') {
     event.preventDefault()
     pasteElements()
@@ -386,7 +387,6 @@ onUnmounted(() => {
   <div
       class="page-wrapper"
       :class="{ dark: isDarkMode }"
-      @contextmenu.prevent="showPaneMenu($event)"
       @click="hideMenu"
   >
     <!-- Top Bar Component -->
@@ -432,13 +432,15 @@ onUnmounted(() => {
 
     <!-- Vue Flow Container -->
     <div class="flow-container">
+      <!-- BEFORE: @pane-context-menu="showPaneContextMenu($event.event)" -->
+      <!-- AFTER: -->
       <VueFlow
           v-model:nodes="nodes"
           v-model:edges="edges"
           :class="{ dark: isDarkMode }"
           @connect="onConnect"
-          @pane-contextmenu.prevent="showPaneMenu"
-          @node-contextmenu.prevent="showNodeMenu"
+          @pane-context-menu="showPaneContextMenu"
+          @node-context-menu="showNodeContextMenu"
       />
     </div>
   </div>

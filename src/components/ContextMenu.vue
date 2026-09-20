@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 defineProps<{
   x: number
   y: number
@@ -7,10 +6,10 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'add-node', type: string): void
-  (e: 'rename-node'): void
-  (e: 'change-type'): void
-  (e: 'delete-node'): void
+  'add-node': [type: string]
+  'rename-node': []
+  'change-type': []
+  'delete-node': []
 }>()
 
 const nodeTypes = [
@@ -25,6 +24,7 @@ const nodeTypes = [
       class="context-menu"
       :style="{ top: `${y}px`, left: `${x}px` }"
       @click.stop
+      @contextmenu.prevent
   >
     <!-- Add Node with Submenu -->
     <div class="menu-item has-submenu">
@@ -79,18 +79,15 @@ const nodeTypes = [
   color: #333;
 }
 
-/* Dark hover effect for regular buttons */
 .menu-item:hover {
   background-color: #4a4a4a;
   color: white;
 }
 
-/* Ensure the arrow changes color when hovered */
 .menu-item:hover .arrow {
   color: white;
 }
 
-/* Red hover state specifically for the Delete button */
 .menu-item.danger:hover {
   background-color: #ff4d4f;
   color: white;
@@ -101,7 +98,6 @@ const nodeTypes = [
   color: #666;
 }
 
-/* Submenu Positioning */
 .has-submenu .submenu {
   display: none;
   position: absolute;
@@ -114,7 +110,6 @@ const nodeTypes = [
   padding: 4px 0;
 }
 
-/* Show Submenu on Hover */
 .has-submenu:hover > .submenu {
   display: block;
 }
